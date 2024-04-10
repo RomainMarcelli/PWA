@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .search-form {
+            margin-top: 20px;
+        }
+        .search-form input[type="text"] {
+            padding: 8px;
+            width: 300px;
+        }
+        .search-form input[type="submit"] {
+            padding: 8px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .search-form input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Offline Page</h1>
+    <p>Vous êtes actuellement hors ligne. Veuillez vérifier votre connexion Internet.</p>
+    
+    <form class="search-form" onsubmit="event.preventDefault(); searchShows();">
+        <input id="searchInput" type="text" placeholder="Rechercher une série TV">
+        <input type="submit" value="Rechercher">
+    </form>
+    
+    <div id="searchResults"></div>
+
+    <script src="function.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        function searchShows() {
+            var searchQuery = document.getElementById("searchInput").value.trim();
+            
+            if (searchQuery === "") {
+                alert("Veuillez entrer un nom de série à rechercher.");
+                return;
+            }
+            var searchResultsDiv = document.getElementById("searchResults");
+            searchResultsDiv.innerHTML = "<p>Vous êtes hors ligne. La recherche n'est pas disponible.</p>";
+        }
+    </script>
+</body>
+
+</html>
