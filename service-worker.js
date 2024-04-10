@@ -1,56 +1,47 @@
-// service-worker.js
-
-
-const VERSION = "v12";
-const DIR = '/pwa_series/';
+const VERSION = 'v9';
+const DIR = '/pwa_series2/';
 const HOST = location.protocol + '//' + location.host;
-// const CACHE_NAME = "pwa-series-cache-" + VERSION;
+const OFFLINE_URL = "/pwa_series/offline.html";
 
-const FILECACHE = [
-    HOST+DIR+'index.html',
-    HOST+DIR+'details.html',
-    HOST+DIR+'details.js',
-    HOST+DIR+'function.js',
-    HOST+DIR+'script.js',
+const FICHIERS_CACHE = [
+  HOST + DIR + 'index.html',
+  HOST + DIR + 'details.html',
+  HOST + DIR + 'details.js',
+  HOST + DIR + 'function.js',
+  HOST + DIR + 'script.js',
 ];
 
+const CACHE_API = 'search-results-cache';
 
 self.addEventListener('install', (e) => {
-    self.skipWaiting();
-    console.log('Version :', VERSION);
+  self.skipWaiting();
+  console.log('Version :', VERSION);
 
-    e.waitUntil(
-        (async () =>{
-            const cache = await caches.open(VERSION);
-            
-            await Promise.all(
-                FILECACHE.map((path) => {
-                    return cache.add(path);
-                })
-            );
-        })()
-    );
+  e.waitUntil(
+    (async () => {
+      const cache = await caches.open(VERSION);
+      await cache.addAll(FICHIERS_CACHE);
+    })()
+  );
 });
 
-self.addEventListener('activate', (e)=> {
-    e.waitUntil(
-        (async () => {
-            const keys = await caches.keys();
-
-            await Promise.all(
-                keys.map((k) => {
-                    if(!k.includes(VERSION))
-                        return caches.delete(k);
-                })
-            );
-        })()
-    );
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map((k) => {
+          if (!k.includes(VERSION)) {
+            return caches.delete(k);
+          }
+        })
+      );
+    })()
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-    console.log('Fetch :', event.request);
-    console.log('Fetch :', event.request.mode);
-    console.log("SOMETHING");
+    console.log('Fetch:', event.request.url);
 
     const request = event.request;
 
@@ -59,10 +50,7 @@ self.addEventListener('fetch', (event) => {
             (async () => {
                 try {
                     const preloadedResponse = await event.preloadResponse;
-
-                    if (preloadedResponse)
-                        return preloadedResponse;
-
+                    if (preloadedResponse) return preloadedResponse;
                     return await fetch(request);
                 } catch (error) {
                     const cache = await caches.open(VERSION);
@@ -78,18 +66,35 @@ self.addEventListener('fetch', (event) => {
                 } else {
                     try {
                         const response = await fetch(request);
-                        const cache = await caches.open('search-results-cache');
+                        const cache = await caches.open(CACHE_API);
                         cache.put(request, response.clone());
                         return response;
                     } catch (error) {
-                        const cache = await caches.open('search-results-cache');
-                        return cache.match(request);
+                        console.error("Failed to fetch:", error);
+                        return new Response("Failed to fetch. You are offline.", { status: 404, statusText: "Offline" });
+                    }
+                }
+            })
+        );
+    } else if (request.url.startsWith('https://api.tvmaze.com/shows/')) {
+        event.respondWith(
+            caches.match(request).then(async (cachedResponse) => {
+                if (cachedResponse) {
+                    return cachedResponse;
+                } else {
+                    try {
+                        const response = await fetch(request);
+                        const cache = await caches.open(CACHE_API);
+                        cache.put(request, response.clone());
+                        return response;
+                    } catch (error) {
+                        console.error("Failed to fetch:", error);
+                        return new Response("Failed to fetch. You are offline.", { status: 404, statusText: "Offline" });
                     }
                 }
             })
         );
     } else {
-        // Gérer la mise en cache et la récupération des autres ressources statiques
         event.respondWith(
             caches.match(request).then((response) => {
                 return response || fetch(request);
@@ -97,5 +102,7 @@ self.addEventListener('fetch', (event) => {
         );
     }
 });
+
+
 
 

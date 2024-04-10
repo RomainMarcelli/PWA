@@ -4,67 +4,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Page</title>
+    <title>Offline Game: Whack-a-Mole</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 85vh;
         }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        .search-form {
-            margin-top: 20px;
-        }
-        .search-form input[type="text"] {
-            padding: 8px;
-            width: 300px;
-        }
-        .search-form input[type="submit"] {
-            padding: 8px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
+
+        .hole {
+            width: 100px;
+            height: 100px;
+            background-color: #9c7045;
+            border: 2px solid #54381e;
+            border-radius: 50%;
+            margin: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #ffffff;
             cursor: pointer;
         }
-        .search-form input[type="submit"]:hover {
-            background-color: #45a049;
+
+        .mole {
+            display: none;
+        }
+
+        .hole.up .mole {
+            display: block;
         }
     </style>
 </head>
 
 <body>
-    <h1>Offline Page</h1>
-    <p>Vous êtes actuellement hors ligne. Veuillez vérifier votre connexion Internet.</p>
-    
-    <form class="search-form" onsubmit="event.preventDefault(); searchShows();">
-        <input id="searchInput" type="text" placeholder="Rechercher une série TV">
-        <input type="submit" value="Rechercher">
-    </form>
-    
-    <div id="searchResults"></div>
+    <button id="startButton">Démarrer</button>
+    <div id="gameStatus"></div>
 
-    <script src="function.js"></script>
-    <script src="script.js"></script>
+    <div class="container">
+        <div class="hole" id="hole1"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole2"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole3"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole4"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole5"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole6"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole7"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole8"><span class="mole">🐾</span></div>
+        <div class="hole" id="hole9"><span class="mole">🐾</span></div>
+    </div>
+
+    <div id="score">Score: 0</div>
 
     <script>
-        function searchShows() {
-            var searchQuery = document.getElementById("searchInput").value.trim();
-            
-            if (searchQuery === "") {
-                alert("Veuillez entrer un nom de série à rechercher.");
-                return;
-            }
-            var searchResultsDiv = document.getElementById("searchResults");
-            searchResultsDiv.innerHTML = "<p>Vous êtes hors ligne. La recherche n'est pas disponible.</p>";
+        const holes = document.querySelectorAll('.hole');
+        let score = 0;
+        let gameStarted = false;
+
+        function randomHole() {
+            const index = Math.floor(Math.random() * holes.length);
+            return holes[index];
         }
+
+        function peep() {
+            if (gameStarted) {
+                const hole = randomHole();
+                hole.classList.add('up');
+                setTimeout(() => {
+                    hole.classList.remove('up');
+                }, 1000);
+            }
+        }
+
+        function bonk(e) {
+            if (!e.isTrusted) return;
+            score++;
+            updateScore();
+        }
+
+        function updateScore() {
+            score++; // Augmenter le score à chaque bon coup
+            document.getElementById('score').textContent = `Score: ${score}`;
+        }
+
+        holes.forEach(hole => hole.addEventListener('click', bonk));
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            gameStarted = true;
+            let gameTimer = setTimeout(() => {
+                gameStarted = false;
+                document.getElementById('gameStatus').textContent = 'Le jeu est terminé !';
+                holes.forEach(hole => hole.innerHTML = '');
+                document.getElementById('startButton').style.display = 'block';
+            }, 30000);
+
+            let peepInterval = setInterval(peep, 1000);
+
+            document.getElementById('startButton').style.display = 'none';
+            document.getElementById('gameStatus').textContent = 'Le jeu commence !';
+
+            setTimeout(() => {
+                document.getElementById('gameStatus').textContent = '';
+            }, 2000);
+        });
     </script>
 </body>
 
